@@ -8,7 +8,31 @@
 import argparse
 import sys
 
-from gi.repository import Gio, Gtk
+from gi.repository import Gio, Gtk, Notify, GObject
+
+
+class Notification(GObject.GObject):
+    __gsignals__ = {
+        'notify-action': (GObject.SIGNAL_RUN_FIRST, None,
+                      (str,))
+    }
+
+    def __init__(self, summary, body):
+        GObject.GObject.__init__(self)
+        Notify.init('MyApp')
+        icon = "dialog-warning"
+        self.notification = Notify.Notification.new(summary, body, icon)
+        self.notification.set_timeout(5000)  # timeout 5s
+        self.notification.connect('closed', self.on_closed)
+
+    def show(self):
+        self.notification.show()
+
+    def callback(self, widget, action):
+        self.emit('notify-action', action)
+
+    def on_closed(self, widget):
+        self.emit('notify-action', 'closed')
 
 
 class Window(Gtk.ApplicationWindow):
@@ -53,6 +77,8 @@ class App(Gtk.Application):
             self.running = True
             self.window.show()
         else:
+            notify = Notification('MyApp is allready running', '')
+            notify.show()
             self.window.present()
 
     def on_command_line(self, app, args):
