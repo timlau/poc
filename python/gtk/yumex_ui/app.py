@@ -39,32 +39,32 @@ class SearchBar(GObject.GObject):
         # Search Entry
         self._entry = self.ui.get('search_entry')
         self._entry.connect('activate', self.on_entry)
-        # fields menu
-        self._fields_menu = self.ui.get('menu_sch_opt_fields')
-        self._fields_button = self.ui.get('sch_opt_field_select')
-        self._fields_button.set_sensitive(False)
+        # Search Options
+        self._options = self.ui.get('search-options')
+        self._options_button = self.ui.get('sch_options_button')
+        self._options_button.connect('toggled', self.on_options_button)
+        # setup field checkboxes
         for key in SearchBar.FIELDS:
-            wid = self.ui.get('menu_fields_%s' % key)
+            wid = self.ui.get('sch_fld_%s' % key)
             if key in self.search_fields:
                 wid.set_active(True)
             wid.connect('toggled', self.on_fields_changed, key)
-        # setup search type radio buttons
+        # setup search type radiobuttons
         for key in SearchBar.TYPES:
             wid = self.ui.get('sch_opt_%s' % key)
             if key == self.search_type:
                 wid.set_active(True)
             wid.connect('toggled', self.on_type_changed, key)
 
+    def on_options_button(self, widget):
+        self._options.set_reveal_child(widget.get_active())
+
     def on_toggle(self, widget):
-        self._bar.set_reveal_child(widget.get_active())
+        self._bar.set_search_mode(not self._bar.get_search_mode())
 
     def on_type_changed(self, widget, key):
         if widget.get_active():
             self.search_type = key
-            if key == 'fields':
-                self._fields_button.set_sensitive(True)
-            else:
-                self._fields_button.set_sensitive(False)
             self.signal()
 
     def on_fields_changed(self, widget, key):
@@ -74,7 +74,7 @@ class SearchBar(GObject.GObject):
     def _get_active_field(self):
         active = []
         for key in SearchBar.FIELDS:
-            wid = self.ui.get('menu_fields_%s' % key)
+            wid = self.ui.get('sch_fld_%s' % key)
             if wid.get_active():
                 active.append(key)
         return active
