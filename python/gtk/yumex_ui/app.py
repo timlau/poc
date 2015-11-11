@@ -90,12 +90,30 @@ class SearchBar(GObject.GObject):
             self.emit('search', txt, self.search_type, [])
 
 
-class UI:
+class Window(Gtk.Window):
+    """Custom window. """
 
+    def __init__(self, ui, gnome=True):
+        Gtk.Window.__init__(
+            self, title='Yum Extender - Powered by DNF')
+        self.ui = ui
+        self.set_default_size(800, 600)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.add(box)
+        if gnome:
+            self.set_titlebar(self.ui.get('headerbar'))
+        else:
+            box.pack_start(self.ui.get('headerbar'), False, True, 0)
+        box.pack_start(self.ui.get('main_box'), False, True, 0)
+        self.show_all()
+
+
+class UI:
+    """UI Handler."""
     def __init__(self):
         self._builder = Gtk.Builder()
         self._builder.add_from_file("test.ui")
-        self.window = self.get('window_main')
+        self.window = Window(self, gnome=True)
         self.search_bar = SearchBar(self)
         self.search_bar.connect('search', self.on_search)
 
