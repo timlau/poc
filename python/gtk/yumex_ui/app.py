@@ -162,10 +162,13 @@ class Window(Gtk.ApplicationWindow, UI):
         self.set_default_size(800, 600)
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(box)
+        self._headerbar = self.ui('headerbar')
         if gnome:
             self.set_titlebar(self.ui('headerbar'))
+            self._headerbar.set_show_close_button(True)
         else:
             box.pack_start(self.ui('headerbar'), False, True, 0)
+            self._headerbar.set_show_close_button(False)
         box.pack_start(self.ui('main_box'), False, True, 0)
         self.setup_gui()
         self.show_all()
@@ -204,7 +207,7 @@ class App(Gtk.Application):
     def on_activate(self, app):
         print("activate called")
         if not self.running:
-            self.window = Window(self, gnome=True)
+            self.window = Window(self, gnome=False)
             app.add_window(self.window)
             self.running = True
             self.window.show()

@@ -250,6 +250,7 @@
   <object class="GtkHeaderBar" id="headerbar">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
+    <property name="show_close_button">True</property>
     <child>
       <object class="GtkMenuButton" id="menubutton1">
         <property name="visible">True</property>
@@ -408,35 +409,23 @@
       </object>
       <packing>
         <property name="pack_type">end</property>
+        <property name="position">1</property>
       </packing>
     </child>
-  </object>
-  <object class="GtkMenu" id="menu_sch_opt_fields">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
     <child>
-      <object class="GtkCheckMenuItem" id="menu_fields_name">
+      <object class="GtkSpinner" id="progress_spinner">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Name</property>
-        <property name="use_underline">True</property>
+        <property name="opacity">0.98000000044703484</property>
+        <property name="margin_left">6</property>
+        <property name="margin_right">12</property>
+        <property name="margin_start">6</property>
+        <property name="margin_end">12</property>
       </object>
-    </child>
-    <child>
-      <object class="GtkCheckMenuItem" id="menu_fields_summary">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Summary</property>
-        <property name="use_underline">True</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkCheckMenuItem" id="menu_fields_description">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Description</property>
-        <property name="use_underline">True</property>
-      </object>
+      <packing>
+        <property name="pack_type">end</property>
+        <property name="position">1</property>
+      </packing>
     </child>
   </object>
 </interface>
