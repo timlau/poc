@@ -91,6 +91,9 @@ class SearchBar(GObject.GObject):
         self._bar.set_search_mode(not self._bar.get_search_mode())
         if self._bar.get_search_mode():
             self._set_focus()
+        else:
+            # make sure search option is hidden
+            self._options_button.set_active(False)
 
     def on_type_changed(self, widget, key):
         """Search type is changed."""
@@ -107,6 +110,8 @@ class SearchBar(GObject.GObject):
 
     def on_entry_activate(self, widget):
         """Seach entry is activated"""
+        # make sure search option is hidden
+        self._options_button.set_active(False)
         self.signal()
 
     def signal(self):
@@ -116,6 +121,28 @@ class SearchBar(GObject.GObject):
             self.emit('search', txt, self.search_type, self.search_fields)
         else:
             self.emit('search', txt, self.search_type, [])
+
+
+class Options(GObject.GObject):
+    """Handling the mainmenu options"""
+
+    __gsignals__ = {'option-changed': (GObject.SignalFlags.RUN_FIRST,
+                                       None,
+                                       (GObject.TYPE_STRING,
+                                        GObject.TYPE_BOOLEAN,)
+                                       )}
+
+    OPTIONS = ['newest_only', 'clean_unused', 'clean_instonly']
+
+    def __init__(self, win):
+        GObject.GObject.__init__(self)
+        self.win = win
+        for key in Options.OPTIONS:
+            wid = self.win.ui('option_%s' % key)
+            wid.connect('toggled', self.on_toggled, key)
+
+    def on_toggled(self, widget, flt):
+        self.emit('option-changed', flt, widget.get_active())
 
 
 class Filters(GObject.GObject):
@@ -142,23 +169,42 @@ class Filters(GObject.GObject):
             self.emit('filter-changed', flt)
 
 
-class UI:
-    """Handling access to Gtk.Builder objects."""
-    def __init__(self):
-        self._builder = Gtk.Builder()
-        self._builder.add_from_file("test.ui")
+class Content(GObject.GObject):
+    """Handling the content pages"""
 
-    def ui(self, widget_name):
-        return self._builder.get_object(widget_name)
+    MENUS = ['packages', 'groups', 'history', 'actions']
+
+    def __init__(self, win):
+        GObject.GObject.__init__(self)
+        self.win = win
+        self.stack = self.win.ui('main_stack')
+        self.search_toggle = self.win.ui('flt_box')
+        self.filters = self.win.ui('sch_togglebutton')
+        for key in Content.MENUS:
+            wid = self.win.ui('main_%s' % key)
+            wid.connect('activate', self.on_menu_select, key)
+
+    def select_page(self, page):
+        self.stack.set_visible_child_name(page)
+        if page == 'packages':
+            self.search_toggle.set_sensitive(True)
+            self.filters.set_sensitive(True)
+        else:
+            self.search_toggle.set_sensitive(False)
+            self.filters.set_sensitive(False)
+
+    def on_menu_select(self, widget, page):
+        self.select_page(page)
 
 
-class Window(Gtk.ApplicationWindow, UI):
+class Window(Gtk.ApplicationWindow):
     """Application window. """
 
     def __init__(self, app, gnome=True):
         Gtk.ApplicationWindow.__init__(
             self, title='Yum Extender - Powered by DNF', application=app)
-        UI.__init__(self)
+        self._builder = Gtk.Builder()
+        self._builder.add_from_file("test.ui")
         self.set_default_size(800, 600)
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(box)
@@ -173,6 +219,9 @@ class Window(Gtk.ApplicationWindow, UI):
         self.setup_gui()
         self.show_all()
 
+    def ui(self, widget_name):
+        return self._builder.get_object(widget_name)
+
     def setup_gui(self):
         # Setup search
         self.search_bar = SearchBar(self)
@@ -180,12 +229,20 @@ class Window(Gtk.ApplicationWindow, UI):
         # Setup package filters
         self.pkg_filter = Filters(self)
         self.pkg_filter.connect('filter-changed', self.on_filter_changed)
+        # Setup Content
+        self.content = Content(self)
+        # Setup Options
+        self.options = Options(self)
+        self.options.connect('option-changed', self.on_option_changed)
 
     def on_search(self, widget, key, sch_type, fields):
         print(key, sch_type, fields)
 
     def on_filter_changed(self, widget, flt):
-        print("Filter changed : ", flt)
+        print("filter changed : ", flt)
+
+    def on_option_changed(self, widget, option, state):
+        print("option changed : ", option, state)
 
 
 class App(Gtk.Application):
@@ -207,7 +264,7 @@ class App(Gtk.Application):
     def on_activate(self, app):
         print("activate called")
         if not self.running:
-            self.window = Window(self, gnome=False)
+            self.window = Window(self, gnome=True)
             app.add_window(self.window)
             self.running = True
             self.window.show()
