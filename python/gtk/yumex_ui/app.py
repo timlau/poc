@@ -16,6 +16,8 @@ from gi.repository import Gio, Gtk, GObject
 
 
 class SearchBar(GObject.GObject):
+    """Handling the search UI."""
+
     __gsignals__ = {'search': (GObject.SignalFlags.RUN_FIRST,
                                     None,
                                     (GObject.TYPE_STRING,
@@ -117,6 +119,7 @@ class SearchBar(GObject.GObject):
 
 
 class Filters(GObject.GObject):
+    """Handling the package filter UI."""
 
     __gsignals__ = {'filter-changed': (GObject.SignalFlags.RUN_FIRST,
                                        None,
@@ -128,17 +131,19 @@ class Filters(GObject.GObject):
     def __init__(self, win):
         GObject.GObject.__init__(self)
         self.win = win
+        self.current = 'updates'
         for flt in Filters.FILTERS:
             wid = self.win.ui('flt_%s' % flt)
             wid.connect('toggled', self.on_toggled, flt)
 
     def on_toggled(self, widget, flt):
         if widget.get_active():
+            self.current = flt
             self.emit('filter-changed', flt)
 
 
 class UI:
-    """UI Handler."""
+    """Handling access to Gtk.Builder objects."""
     def __init__(self):
         self._builder = Gtk.Builder()
         self._builder.add_from_file("test.ui")
@@ -148,7 +153,8 @@ class UI:
 
 
 class Window(Gtk.ApplicationWindow, UI):
-    """Custom window. """
+    """Application window. """
+
     def __init__(self, app, gnome=True):
         Gtk.ApplicationWindow.__init__(
             self, title='Yum Extender - Powered by DNF', application=app)
@@ -180,6 +186,7 @@ class Window(Gtk.ApplicationWindow, UI):
 
 
 class App(Gtk.Application):
+    """Main application."""
 
     def __init__(self):
         Gtk.Application.__init__(self,
